@@ -1,0 +1,6 @@
+{
+  "name": "Dhaga & Co. Return Intelligence & Agent Command Center",
+  "description": "Enterprise Return Intelligence system reducing return rates from 31% with autonomous customer support, logistics tracking agents, and vendor fit intelligence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
