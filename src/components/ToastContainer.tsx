@@ -28,22 +28,25 @@ const ToastItem: React.FC<{
   useEffect(() => {
     if (isPaused) return;
 
-    const interval = 50; // update every 50ms
-    const totalDuration = 7000; // 7 seconds
-    const decrement = (interval / totalDuration) * 100;
+    const totalDuration = 7000; // 7 seconds auto-dismiss
+    const startTime = Date.now();
 
-    const timer = setInterval(() => {
-      setProgress(prev => {
-        if (prev <= decrement) {
-          clearInterval(timer);
-          onDismiss(toast.id);
-          return 0;
-        }
-        return prev - decrement;
-      });
-    }, interval);
+    // Independent timer to trigger dismiss outside of state updater
+    const dismissTimer = setTimeout(() => {
+      onDismiss(toast.id);
+    }, totalDuration);
 
-    return () => clearInterval(timer);
+    // Smooth visual progress bar (updates local progress only)
+    const progressInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const remainingPct = Math.max(0, 100 - (elapsed / totalDuration) * 100);
+      setProgress(remainingPct);
+    }, 50);
+
+    return () => {
+      clearTimeout(dismissTimer);
+      clearInterval(progressInterval);
+    };
   }, [isPaused, toast.id, onDismiss]);
 
   const getStyles = () => {

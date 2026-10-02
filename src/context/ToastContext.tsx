@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { ToastNotification, ToastSeverity, ToastCategory } from '../types';
 import { VENDOR_BENCHMARKS_DATA } from '../data/mockData';
 
@@ -24,7 +24,7 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [vendorThreshold, setVendorThresholdState] = useState<number>(35.0);
 
-  const addToast = (toastInput: Omit<ToastNotification, 'id' | 'timestamp'>) => {
+  const addToast = useCallback((toastInput: Omit<ToastNotification, 'id' | 'timestamp'>) => {
     const id = `toast-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const newToast: ToastNotification = {
@@ -38,23 +38,23 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // Add to history
     setHistory(prev => [newToast, ...prev]);
     setUnreadCount(prev => prev + 1);
-  };
+  }, []);
 
-  const dismissToast = (id: string) => {
+  const dismissToast = useCallback((id: string) => {
     setToasts(prev => prev.filter(t => t.id !== id));
-  };
+  }, []);
 
-  const clearAll = () => {
+  const clearAll = useCallback(() => {
     setToasts([]);
     setHistory([]);
     setUnreadCount(0);
-  };
+  }, []);
 
-  const markAllAsRead = () => {
+  const markAllAsRead = useCallback(() => {
     setUnreadCount(0);
-  };
+  }, []);
 
-  const triggerHighPriorityReturnAlert = (orderId = 'DH-89245', reason = 'Severe Chest Sizing Discrepancy (-2.1")', rtoScore = 0.81) => {
+  const triggerHighPriorityReturnAlert = useCallback((orderId = 'DH-89245', reason = 'Severe Chest Sizing Discrepancy (-2.1")', rtoScore = 0.81) => {
     addToast({
       title: '🚨 Agent Alert: High-Priority Return Flagged',
       message: `Order #${orderId} flagged with ${(rtoScore * 100).toFixed(0)}% RTO Risk. Reason: ${reason}. Automated doorstep exchange & COD hold initiated.`,
@@ -64,9 +64,9 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       actionLabel: 'Inspect in Command Center',
       actionTargetTab: 'agents'
     });
-  };
+  }, [addToast]);
 
-  const checkVendorThresholds = (thresholdVal = vendorThreshold) => {
+  const checkVendorThresholds = useCallback((thresholdVal = vendorThreshold) => {
     const breachingVendors = VENDOR_BENCHMARKS_DATA.filter(v => v.overallReturnRate >= thresholdVal);
     
     if (breachingVendors.length > 0) {
@@ -85,12 +85,12 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         });
       });
     }
-  };
+  }, [vendorThreshold, addToast]);
 
-  const setVendorThreshold = (val: number) => {
+  const setVendorThreshold = useCallback((val: number) => {
     setVendorThresholdState(val);
     checkVendorThresholds(val);
-  };
+  }, [checkVendorThresholds]);
 
   // Initial trigger after mount for realistic real-time dashboard feel
   useEffect(() => {
