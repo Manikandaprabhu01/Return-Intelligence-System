@@ -92,41 +92,6 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     checkVendorThresholds(val);
   }, [checkVendorThresholds]);
 
-  // Initial trigger after mount for realistic real-time dashboard feel
-  useEffect(() => {
-    const timer1 = setTimeout(() => {
-      addToast({
-        title: '⚠️ Vendor Threshold Breach: Jaipur Loomcraft',
-        message: 'Jaipur Loomcraft return rate is 38.4% (Threshold: 35.0%). 64.2% of returns are chest fitting discrepancies.',
-        severity: 'warning',
-        category: 'vendor_threshold_exceeded',
-        vendorId: 'VEND-014',
-        vendorName: 'Jaipur Loomcraft',
-        returnRate: 38.4,
-        threshold: 35.0,
-        actionLabel: 'View Vendor Matrix',
-        actionTargetTab: 'vendors'
-      });
-    }, 1200);
-
-    const timer2 = setTimeout(() => {
-      addToast({
-        title: '🚨 Agent Flagged High-Risk COD Return',
-        message: 'Order #DH-89245 (Darbhanga COD, ₹940) scored 81% RTO risk. Customer initiated cancellation via WhatsApp; pre-dispatch interceptor held parcel.',
-        severity: 'critical',
-        category: 'high_priority_return',
-        orderId: 'DH-89245',
-        actionLabel: 'Open Agent Trace',
-        actionTargetTab: 'agents'
-      });
-    }, 3800);
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
-  }, []);
-
   return (
     <ToastContext.Provider
       value={{

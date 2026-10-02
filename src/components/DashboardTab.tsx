@@ -3,19 +3,18 @@ import {
   TrendingDown, 
   RotateCcw, 
   DollarSign, 
-  Package, 
   Clock, 
-  Layers, 
+  Sliders, 
   CheckCircle2, 
   AlertTriangle,
   ArrowRight,
-  Sliders,
-  Sparkles
+  Sparkles,
+  BarChart3
 } from 'lucide-react';
 import { BUSINESS_KPIS, ROOT_CAUSE_DISTRIBUTION } from '../data/mockData';
 
 export const DashboardTab: React.FC = () => {
-  const [targetReturnRate, setTargetReturnRate] = useState<number>(24.5);
+  const [targetReturnRate, setTargetReturnRate] = useState<number>(2.5);
   const [exchangeAcceptanceRate, setExchangeAcceptanceRate] = useState<number>(35);
 
   // Dynamic calculations based on slider
@@ -27,140 +26,183 @@ export const DashboardTab: React.FC = () => {
   const totalFinancialBenefitCr = Number(((annualReturnsPrevented * BUSINESS_KPIS.totalHandlingCostPerReturnInr + 3400000) / 10000000).toFixed(2));
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto py-6">
-      {/* Top Level Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-10 max-w-7xl mx-auto py-8">
+      {/* Executive Overview KPIs */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1 */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Current Return Rate</span>
-            <div className="p-2 rounded-lg bg-rose-500/10 text-rose-400">
-              <RotateCcw className="w-4 h-4" />
-            </div>
+        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 relative overflow-hidden backdrop-blur-sm">
+          <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
+            <span>CURRENT RETURN RATE</span>
+            <RotateCcw className="w-4 h-4 text-rose-400" />
           </div>
           <div className="mt-3 flex items-baseline space-x-2">
-            <span className="text-3xl font-black text-rose-400">31.0%</span>
-            <span className="text-xs text-rose-500 font-medium">14,880 orders/wk</span>
+            <span className="text-3xl sm:text-4xl font-bold text-rose-400 font-mono tabular-nums">31.0%</span>
+            <span className="text-xs text-slate-400 font-mono">14,880 / wk</span>
           </div>
-          <div className="mt-3 text-xs text-slate-400 border-t border-slate-800/80 pt-2 flex items-center justify-between">
-            <span>Benchmark in Fast Fashion:</span>
-            <span className="text-slate-300 font-medium">18-22%</span>
+          <div className="mt-3 pt-3 border-t border-slate-800/80 text-xs text-slate-400 flex items-center justify-between">
+            <span>Fast Fashion Benchmark:</span>
+            <span className="text-slate-200 font-semibold font-mono">18.0%–22.0%</span>
           </div>
         </div>
 
         {/* Card 2 */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">COD RTO Rate</span>
-            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
-              <AlertTriangle className="w-4 h-4" />
-            </div>
+        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 relative overflow-hidden backdrop-blur-sm">
+          <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
+            <span>COD REJECTION (RTO)</span>
+            <AlertTriangle className="w-4 h-4 text-amber-400" />
           </div>
           <div className="mt-3 flex items-baseline space-x-2">
-            <span className="text-3xl font-black text-amber-400">26.0%</span>
-            <span className="text-xs text-amber-500 font-medium">61% of total GMV</span>
+            <span className="text-3xl sm:text-4xl font-bold text-amber-400 font-mono tabular-nums">26.0%</span>
+            <span className="text-xs text-slate-400 font-mono">61% of GMV</span>
           </div>
-          <div className="mt-3 text-xs text-slate-400 border-t border-slate-800/80 pt-2 flex items-center justify-between">
-            <span>Faizan's Delivery Loss:</span>
-            <span className="text-rose-400 font-medium">₹120/package</span>
+          <div className="mt-3 pt-3 border-t border-slate-800/80 text-xs text-slate-400 flex items-center justify-between">
+            <span>Delivery Loss per Rejection:</span>
+            <span className="text-rose-400 font-semibold font-mono">₹120 / order</span>
           </div>
         </div>
 
         {/* Card 3 */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Unmasked "Other" Box</span>
-            <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400">
-              <Sparkles className="w-4 h-4" />
-            </div>
+        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 relative overflow-hidden backdrop-blur-sm">
+          <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
+            <span>CLASSIFIED "OTHER" BOX</span>
+            <Sparkles className="w-4 h-4 text-indigo-400" />
           </div>
           <div className="mt-3 flex items-baseline space-x-2">
-            <span className="text-3xl font-black text-purple-400">98.2%</span>
-            <span className="text-xs text-emerald-400 font-medium">AI Categorized</span>
+            <span className="text-3xl sm:text-4xl font-bold text-indigo-300 font-mono tabular-nums">98.2%</span>
+            <span className="text-xs text-emerald-400 font-mono font-medium">Attributed</span>
           </div>
-          <div className="mt-3 text-xs text-slate-400 border-t border-slate-800/80 pt-2 flex items-center justify-between">
-            <span>Before (Neha's Blindspot):</span>
-            <span className="text-rose-400 font-medium">44% unread</span>
+          <div className="mt-3 pt-3 border-t border-slate-800/80 text-xs text-slate-400 flex items-center justify-between">
+            <span>Previously Unread (Blindspot):</span>
+            <span className="text-rose-400 font-semibold font-mono">44.0%</span>
           </div>
         </div>
 
         {/* Card 4 */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Avg First Response</span>
-            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
-              <Clock className="w-4 h-4" />
-            </div>
+        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 relative overflow-hidden backdrop-blur-sm">
+          <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
+            <span>FIRST RESPONSE LATENCY</span>
+            <Clock className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="mt-3 flex items-baseline space-x-2">
-            <span className="text-3xl font-black text-emerald-400">14.2 sec</span>
-            <span className="text-xs text-slate-400 font-medium line-through">9 hours</span>
+            <span className="text-3xl sm:text-4xl font-bold text-emerald-400 font-mono tabular-nums">14.2s</span>
+            <span className="text-xs text-slate-500 font-mono line-through">9 hours</span>
           </div>
-          <div className="mt-3 text-xs text-slate-400 border-t border-slate-800/80 pt-2 flex items-center justify-between">
-            <span>WISMO Deflection:</span>
-            <span className="text-emerald-400 font-medium">68.4% automated</span>
+          <div className="mt-3 pt-3 border-t border-slate-800/80 text-xs text-slate-400 flex items-center justify-between">
+            <span>Automated WISMO Deflection:</span>
+            <span className="text-emerald-400 font-semibold font-mono">68.4%</span>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Interactive ROI & Impact Simulator */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-indigo-950/40 border border-indigo-500/30 rounded-2xl p-6 sm:p-8 shadow-xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      {/* Interactive ROI & Cash Recovery Modeling Console */}
+      <section className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 backdrop-blur-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
           <div>
-            <div className="flex items-center space-x-2">
-              <Sliders className="w-5 h-5 text-indigo-400" />
-              <h2 className="text-xl font-bold text-white">Executive ROI &amp; Cash Recovery Simulator</h2>
+            <div className="flex items-center space-x-2 text-xs font-mono uppercase tracking-wider text-indigo-400 mb-1">
+              <Sliders className="w-4 h-4" />
+              <span>Sensitivity Financial Simulator</span>
             </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              Executive Cash Recovery &amp; Margin Expansion Levers
+            </h2>
             <p className="text-xs text-slate-400 mt-1">
-              Model how reducing return rate from 31% directly scales Dhaga &amp; Co.'s operating margin and rescues delivery slots.
+              Adjust the return reduction and exchange conversion levers to model projected operating margins.
             </p>
           </div>
 
-          <div className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center space-x-3">
+          <div className="px-5 py-3 rounded-xl bg-slate-950/80 border border-emerald-500/30 flex items-center space-x-3 shrink-0">
             <DollarSign className="w-6 h-6 text-emerald-400" />
             <div>
-              <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Net Cash Rescued (Annual)</span>
-              <p className="text-xl font-black text-emerald-300">₹{totalFinancialBenefitCr} Crore</p>
+              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">
+                Net Annual Value Rescued
+              </span>
+              <p className="text-2xl font-bold text-emerald-400 font-mono tabular-nums">
+                ₹{totalFinancialBenefitCr} Crore
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Sliders Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-900/80 p-5 rounded-xl border border-slate-700/60 mb-6">
+        {/* Levers Slider Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-950/60 p-5 sm:p-6 rounded-xl border border-slate-800/80">
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <label className="text-xs font-semibold text-slate-200 flex items-center gap-2">
                 <span>Target Return Rate:</span>
-                <span className="text-indigo-400 font-bold">{targetReturnRate}%</span>
-                <span className="text-[10px] text-slate-500">(Down from 31.0%)</span>
+                <span className="text-emerald-400 font-bold font-mono text-sm">{targetReturnRate.toFixed(1)}%</span>
+                {targetReturnRate <= 3.0 && (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold">
+                    &lt; 2-3% Target
+                  </span>
+                )}
               </label>
-              <span className="text-xs font-bold text-emerald-400">
-                -{(BUSINESS_KPIS.currentReturnRatePct - targetReturnRate).toFixed(1)}% pts
+              <span className="text-xs font-mono font-bold text-emerald-400">
+                -{(BUSINESS_KPIS.currentReturnRatePct - targetReturnRate).toFixed(1)}% drop
               </span>
             </div>
+            
             <input 
               type="range"
-              min="18.0"
+              min="1.0"
               max="31.0"
               step="0.5"
               value={targetReturnRate}
               onChange={(e) => setTargetReturnRate(parseFloat(e.target.value))}
-              className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
             />
-            <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-              <span>18.0% (Best in Class)</span>
-              <span>24.5% (MVP 90-day Target)</span>
-              <span>31.0% (Current)</span>
+            
+            {/* Quick Scenario Preset Chips */}
+            <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+              <button
+                onClick={() => setTargetReturnRate(2.5)}
+                className={`text-[10px] font-mono px-2 py-1 rounded-lg border transition-all cursor-pointer ${
+                  targetReturnRate === 2.5
+                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold shadow-sm'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                ★ &lt; 2-3% (2.5% Moonshot)
+              </button>
+              <button
+                onClick={() => setTargetReturnRate(18.0)}
+                className={`text-[10px] font-mono px-2 py-1 rounded-lg border transition-all cursor-pointer ${
+                  targetReturnRate === 18.0
+                    ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300 font-bold shadow-sm'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                18.0% (Global Best)
+              </button>
+              <button
+                onClick={() => setTargetReturnRate(24.5)}
+                className={`text-[10px] font-mono px-2 py-1 rounded-lg border transition-all cursor-pointer ${
+                  targetReturnRate === 24.5
+                    ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300 font-bold shadow-sm'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                24.5% (Phase 1 90-Day)
+              </button>
+              <button
+                onClick={() => setTargetReturnRate(31.0)}
+                className={`text-[10px] font-mono px-2 py-1 rounded-lg border transition-all cursor-pointer ${
+                  targetReturnRate === 31.0
+                    ? 'bg-rose-500/20 border-rose-500 text-rose-300 font-bold shadow-sm'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                31.0% (Current)
+              </button>
             </div>
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                <span>Exchange vs. Refund Acceptance Rate:</span>
-                <span className="text-indigo-400 font-bold">{exchangeAcceptanceRate}%</span>
+            <div className="flex justify-between items-center mb-2.5">
+              <label className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+                <span>Exchange vs. Full Refund Acceptance:</span>
+                <span className="text-indigo-400 font-bold font-mono text-sm">{exchangeAcceptanceRate}%</span>
               </label>
-              <span className="text-xs text-slate-400">Target: 35%+</span>
+              <span className="text-xs text-slate-400 font-mono">Target: 35%+</span>
             </div>
             <input 
               type="range"
@@ -169,60 +211,58 @@ export const DashboardTab: React.FC = () => {
               step="5"
               value={exchangeAcceptanceRate}
               onChange={(e) => setExchangeAcceptanceRate(parseInt(e.target.value))}
-              className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
-            <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-              <span>10% (Low retention)</span>
-              <span>35% (Doorstep exchange)</span>
-              <span>60% (High incentive)</span>
+            <div className="flex justify-between text-[11px] font-mono text-slate-400 mt-1.5">
+              <span>10% (Low Incentive)</span>
+              <span className="text-indigo-300 font-semibold">35% (Doorstep + ₹100)</span>
+              <span>60% (Max Incentive)</span>
             </div>
           </div>
         </div>
 
-        {/* Live Calculation Cards */}
+        {/* Live Calculation Outcomes */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
-            <span className="text-xs text-slate-400">Weekly Returns Prevented</span>
-            <p className="text-2xl font-bold text-indigo-400 mt-1">{weeklyReturnsPrevented.toLocaleString()}</p>
-            <span className="text-[11px] text-slate-500">Parcels saved from reverse transit</span>
+          <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800">
+            <span className="text-xs text-slate-400 block mb-1">Weekly Returns Prevented</span>
+            <p className="text-2xl font-bold text-indigo-400 font-mono tabular-nums">{weeklyReturnsPrevented.toLocaleString()}</p>
+            <span className="text-[11px] text-slate-400 mt-0.5 block">Parcels saved from reverse</span>
           </div>
 
-          <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
-            <span className="text-xs text-slate-400">Annual Return Volume Saved</span>
-            <p className="text-2xl font-bold text-emerald-400 mt-1">{annualReturnsPrevented.toLocaleString()}</p>
-            <span className="text-[11px] text-slate-500">Across Delhivery/Ekart/Shiprocket</span>
+          <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800">
+            <span className="text-xs text-slate-400 block mb-1">Annual Returns Saved</span>
+            <p className="text-2xl font-bold text-emerald-400 font-mono tabular-nums">{annualReturnsPrevented.toLocaleString()}</p>
+            <span className="text-[11px] text-slate-400 mt-0.5 block">Across 3 carriers</span>
           </div>
 
-          <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
-            <span className="text-xs text-slate-400">Direct Reverse Freight Saved</span>
-            <p className="text-2xl font-bold text-amber-400 mt-1">₹{directFreightSavingsAnnualCr} Cr</p>
-            <span className="text-[11px] text-slate-500">Faizan's logistics budget</span>
+          <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800">
+            <span className="text-xs text-slate-400 block mb-1">Direct Reverse Freight Saved</span>
+            <p className="text-2xl font-bold text-amber-400 font-mono tabular-nums">₹{directFreightSavingsAnnualCr} Cr</p>
+            <span className="text-[11px] text-slate-400 mt-0.5 block">Faizan's logistics budget</span>
           </div>
 
-          <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
-            <span className="text-xs text-slate-400">Support Hours Reclaimed</span>
-            <p className="text-2xl font-bold text-purple-400 mt-1">1,350 hrs/wk</p>
-            <span className="text-[11px] text-slate-500">Arpita's 34 agents freed</span>
+          <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800">
+            <span className="text-xs text-slate-400 block mb-1">Support Hours Reclaimed</span>
+            <p className="text-2xl font-bold text-purple-400 font-mono tabular-nums">1,350 hrs/wk</p>
+            <span className="text-[11px] text-slate-400 mt-0.5 block">34 agents freed</span>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Root Causes: Unmasking the 44% "Other" Box */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Root Cause Pareto Breakdown */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-4">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Root Cause Pareto Breakdown (2 cols) */}
+        <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 sm:p-7 space-y-5">
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
             <div>
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <span>Root Causes Extracted from the 44% "Other" Box</span>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Root Cause Extraction from 44% "Other" Box
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 mt-0.5">
                 Gemini 3.8 Flash parsed 14,880 weekly free-text Hinglish return notes &amp; 410,000 product reviews into 6 actionable categories.
               </p>
             </div>
-            <span className="text-xs font-semibold px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-              Live AI Pipeline
-            </span>
+            <span className="text-xs font-mono text-emerald-400">98.2% Accuracy</span>
           </div>
 
           <div className="space-y-4">
@@ -231,85 +271,61 @@ export const DashboardTab: React.FC = () => {
                 <div className="flex justify-between items-center text-xs">
                   <div className="flex items-center space-x-2">
                     <span className="font-semibold text-slate-200">{item.category}</span>
-                    <span className="text-[10px] text-slate-400">({item.volume.toLocaleString()} units/wk)</span>
+                    <span className="text-[11px] font-mono text-slate-400">({item.volume.toLocaleString()} units/wk)</span>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <span className="text-[11px] text-amber-400 font-medium">Vendor Fault: {item.vendorFault}%</span>
+                  <div className="flex items-center space-x-3 font-mono">
+                    <span className="text-[11px] text-amber-400">Vendor Fault: {item.vendorFault}%</span>
                     <span className="font-bold text-slate-100">{item.percentage}%</span>
                   </div>
                 </div>
 
-                {/* Progress bar */}
-                <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden flex">
+                <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
                   <div 
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      idx === 0 
-                        ? 'bg-rose-500' 
-                        : idx === 1 
-                        ? 'bg-amber-500' 
-                        : idx === 2 
-                        ? 'bg-purple-500' 
-                        : idx === 3 
-                        ? 'bg-blue-500' 
-                        : 'bg-emerald-500'
-                    }`}
+                    className="h-full bg-gradient-to-r from-rose-500 via-amber-500 to-indigo-500 rounded-full transition-all duration-500"
                     style={{ width: `${item.percentage}%` }}
                   />
-                </div>
-
-                <div className="flex justify-between text-[11px] text-slate-500">
-                  <span>Primary Culprit: <strong className="text-slate-400">{item.primaryVendor}</strong></span>
-                  <span>{item.vendorFault > 50 ? 'Directly Remediable via Specs' : 'Customer Behavioral'}</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Right: Operational Anatomy of Dhaga & Co. */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <Package className="w-4 h-4 text-rose-400" />
-            <span>Category &amp; Channel Anatomy</span>
-          </h3>
-
-          <div className="space-y-3 text-xs">
-            <div className="p-3 rounded-lg bg-slate-800/60 border border-slate-700/50">
-              <span className="text-slate-400 block font-medium mb-1">Product Mix (GMV Share):</span>
-              <div className="space-y-1.5">
-                <div className="flex justify-between">
-                  <span className="text-rose-300 font-medium">Womenswear (Kurtis &amp; Sets)</span>
-                  <span className="text-slate-200 font-bold">60% (Return: 34.2%)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-indigo-300 font-medium">Kidswear (Boys/Girls)</span>
-                  <span className="text-slate-200 font-bold">30% (Return: 22.1%)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-emerald-300 font-medium">Men's Basics</span>
-                  <span className="text-slate-200 font-bold">10% (Return: 16.4%)</span>
-                </div>
+        {/* Right: Key Insight Sidebar */}
+        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 sm:p-7 space-y-4 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center space-x-2 text-xs font-mono uppercase tracking-wider text-slate-400 mb-1">
+              <BarChart3 className="w-4 h-4 text-rose-400" />
+              <span>Sizing Attribution Insight</span>
+            </div>
+            <h3 className="text-base font-bold text-white tracking-tight">
+              Tiruppur vs. Jaipur Divergence
+            </h3>
+            <p className="text-xs text-slate-300 leading-relaxed mt-2">
+              Over <strong>64.2%</strong> of sizing returns originate from Jaipur ethnicwear kurtis running 1.8"–2.2" smaller in the bust compared to Tiruppur cotton tops.
+            </p>
+            
+            <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800/80 mt-4 space-y-2 text-xs font-mono text-slate-300">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Jaipur Vendor Defect:</span>
+                <span className="text-rose-400 font-bold">38.4% Return Rate</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Tiruppur Vendor Defect:</span>
+                <span className="text-emerald-400 font-bold">19.2% Return Rate</span>
+              </div>
+              <div className="flex justify-between border-t border-slate-800/80 pt-1.5">
+                <span className="text-slate-400">Sizing Delta:</span>
+                <span className="text-amber-300 font-bold">-2.1" at Bust</span>
               </div>
             </div>
+          </div>
 
-            <div className="p-3 rounded-lg bg-slate-800/60 border border-slate-700/50">
-              <span className="text-slate-400 block font-medium mb-1">Customer Demographics:</span>
-              <ul className="space-y-1 text-slate-300">
-                <li>• <strong>64% Tier-2 &amp; Tier-3 Cities:</strong> Patchy connectivity, Hinglish vernacular search ("mehndi function dress").</li>
-                <li>• <strong>92% Android App Orders:</strong> Low-cost handsets, lightweight interfaces necessary.</li>
-                <li>• <strong>61% Cash On Delivery:</strong> High risk of impulse refusal upon delayed delivery.</li>
-              </ul>
-            </div>
-
-            <div className="p-3 rounded-lg bg-indigo-950/30 border border-indigo-800/40">
-              <span className="text-indigo-300 block font-bold mb-1">The Repeat Rate Dilemma:</span>
-              <p className="text-slate-300 text-[11px]">
-                Ritu noted: <em>"Repeat purchase rate stuck at 22% for six quarters."</em> When a first-time customer experiences a 9-hour wait for a return pickup or gets a kurti that pinches at the bust, they never buy again. Fixing returns unlocks repeat LTV!
-              </p>
-            </div>
+          <div className="p-4 rounded-xl bg-indigo-950/30 border border-indigo-900/40 text-xs text-indigo-200">
+            <span className="font-semibold block mb-1">Autonomous Resolution Path:</span>
+            <span>Agent 1 intercepts size inquiries on WhatsApp within 15 seconds, offering 1-click doorstep exchange to Size +1 before reverse freight is incurred.</span>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

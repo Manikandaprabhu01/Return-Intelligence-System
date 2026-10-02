@@ -5,21 +5,16 @@ import {
   Sparkles, 
   CheckCircle2, 
   AlertCircle, 
-  Clock, 
-  ArrowRight, 
   RefreshCw, 
-  Cpu, 
   Terminal, 
   Zap, 
   ShieldAlert, 
-  Truck,
-  RotateCcw,
-  Tag,
-  PhoneCall,
-  UserCheck
+  Copy,
+  Check,
+  CheckCheck
 } from 'lucide-react';
 import { SAMPLE_ORDERS_DATA, INITIAL_EXECUTION_LOGS } from '../data/mockData';
-import { AgentExecutionLog, OrderRecord } from '../types';
+import { AgentExecutionLog } from '../types';
 import { useToast } from '../context/ToastContext';
 
 export const AgentCommandCenter: React.FC = () => {
@@ -34,6 +29,7 @@ export const AgentCommandCenter: React.FC = () => {
   const [customQuery, setCustomQuery] = useState<string>('Mera Anarkali kurti ka chest bahut tight hai aur zip nahi chadh rahi. Return kardo please.');
   const [intelligenceText, setIntelligenceText] = useState<string>('Kapda rani pink bola tha par photo se bohot dull aur patla hai, chest pe 2 inch chhota hai.');
   const [showFailureMode, setShowFailureMode] = useState<boolean>(false);
+  const [copiedTrace, setCopiedTrace] = useState<boolean>(false);
 
   // Execution states
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -43,12 +39,12 @@ export const AgentCommandCenter: React.FC = () => {
   // Pre-configured Hinglish test prompts
   const HINGLISH_PRESETS = [
     {
-      label: 'Fit Issue (Chest Tightness)',
+      label: 'Fit Defect (Chest Tightness)',
       text: 'Bhaiya Indigo kurti size M mangaayi thi par chest pe bohot tight hai, kya exchange mil sakta hai?',
       type: 'SIZE_EXCHANGE'
     },
     {
-      label: 'WISMO (Where is my order?)',
+      label: 'WISMO (Where is my parcel?)',
       text: 'Order DH-89241 Gorakhpur kab tak aayega? Kal meri behen ki mehendi hai urgent chahiye.',
       type: 'WISMO'
     },
@@ -58,22 +54,29 @@ export const AgentCommandCenter: React.FC = () => {
       type: 'RETURN_REQUEST'
     },
     {
-      label: 'COD Buyer Remorse',
+      label: 'COD Buyer Remorse / Cancellation',
       text: 'Maine COD pe book kiya tha par abhi mere paas cash nahi hai, delivery cancel kar do.',
       type: 'CANCELLATION'
     },
     {
-      label: 'Edge Case / Low Confidence (Fails Visibly)',
+      label: 'Edge Case (Fails Visibly)',
       text: 'Maine pichle saal ek kurti li thi kisi aur dukaan se, kya aap uska coupon de sakte ho 1000 rupaye ka?',
       type: 'FAILURE_MODE'
     }
   ];
 
+  const handleCopyTrace = () => {
+    if (!executionResult) return;
+    navigator.clipboard.writeText(JSON.stringify(executionResult, null, 2));
+    setCopiedTrace(true);
+    setTimeout(() => setCopiedTrace(false), 2000);
+  };
+
   const handleRunAgent = async (overrideText?: string, isFailDemo?: boolean) => {
     setIsLoading(true);
     setExecutionResult(null);
 
-    const queryToUse = overrideText || customQuery;
+    const queryToUse = overrideText || (activeAgent === 'intelligence' ? intelligenceText : customQuery);
     const isFailureDemoTrigger = isFailDemo !== undefined ? isFailDemo : showFailureMode;
 
     try {
@@ -94,8 +97,8 @@ export const AgentCommandCenter: React.FC = () => {
           setExecutionResult(failResult);
           
           addToast({
-            title: '⚠️ Visible Guardrail: Escalated to Human',
-            message: `Confidence score 0.38 < 0.65 threshold. Escalated to Tier-2 CX supervisor to prevent hallucination.`,
+            title: 'Visible Guardrail Escalation',
+            message: `Confidence score 0.38 < 0.65 threshold. Escalated to Tier-2 supervisor.`,
             severity: 'warning',
             category: 'system'
           });
@@ -164,44 +167,7 @@ export const AgentCommandCenter: React.FC = () => {
       const resPayload = data.result || data.parsedData || data.data || data;
       setExecutionResult(resPayload);
 
-      // Contextual Toast Alerts
-      if (data.rtoRiskScore && data.rtoRiskScore >= 0.70) {
-        addToast({
-          title: `🚨 High-Risk COD Return Intercepted`,
-          message: `Order #${selectedOrder.orderId} scored ${(data.rtoRiskScore * 100).toFixed(0)}% RTO risk. WhatsApp verification + ₹40 UPI discount sent.`,
-          severity: 'critical',
-          category: 'high_priority_return',
-          orderId: selectedOrder.orderId
-        });
-      } else if (resPayload?.vendorFaultProbability && resPayload.vendorFaultProbability >= 80) {
-        addToast({
-          title: `🚨 Critical Return: Vendor Sizing Flaw`,
-          message: `Order #${selectedOrder.orderId}: ${resPayload.specificMeasurementDiscrepancy}. Vendor fault: ${resPayload.vendorFaultProbability}%.`,
-          severity: 'critical',
-          category: 'high_priority_return',
-          orderId: selectedOrder.orderId,
-          actionLabel: 'Inspect Vendor Matrix',
-          actionTargetTab: 'vendors'
-        });
-      } else if (resPayload?.exchangeOfferDetails?.eligible) {
-        addToast({
-          title: `✨ Return Deflected: Doorstep Exchange Offered`,
-          message: `Customer offered 1-click exchange to Size ${resPayload.exchangeOfferDetails.suggestedSize} + ₹100 credit. Saved ₹120 reverse courier fee!`,
-          severity: 'success',
-          category: 'agent_deflection',
-          orderId: selectedOrder.orderId
-        });
-      } else if (resPayload?.detectedIntent === 'WISMO') {
-        addToast({
-          title: `⚡ WISMO Inquiry Deflected Instantly`,
-          message: `Shared live ${selectedOrder.carrier} tracking details (${selectedOrder.trackingNumber}) in Hinglish. Ticket closed in 380ms.`,
-          severity: 'info',
-          category: 'agent_deflection',
-          orderId: selectedOrder.orderId
-        });
-      }
-
-      // Create log
+      // Create operational log
       const newLog: AgentExecutionLog = {
         id: `LOG-${Math.floor(1000 + Math.random() * 9000)}`,
         timestamp: new Date().toLocaleTimeString(),
@@ -256,147 +222,135 @@ export const AgentCommandCenter: React.FC = () => {
       }
 
       setExecutionResult(fallbackPayload);
-
-      addToast({
-        title: '⚡ Deterministic Engine Activated',
-        message: 'Processed agent query instantly via local rule engine.',
-        severity: 'info',
-        category: 'agent_deflection',
-        orderId: selectedOrder.orderId
-      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto py-6">
-      {/* Agent Selector Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div className="space-y-8 max-w-7xl mx-auto py-8">
+      {/* 4 Agent Navigation Tabs */}
+      <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm space-y-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
           <div>
-            <div className="flex items-center space-x-2">
-              <span className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-                <Bot className="w-5 h-5" />
-              </span>
-              <div>
-                <h1 className="text-xl font-bold text-white">Autonomous Agent Command Center</h1>
-                <p className="text-xs text-slate-400">
-                  Four specialized AI agents operating on Dhaga &amp; Co.'s actual data flow, reducing 14,880 weekly returns &amp; 9,000 support tickets.
-                </p>
-              </div>
+            <div className="flex items-center space-x-2 text-xs font-mono uppercase tracking-wider text-indigo-400 mb-1">
+              <Bot className="w-4 h-4" />
+              <span>Multi-Agent Dispatcher Console</span>
             </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              Autonomous Agent Command Center
+            </h1>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Four specialized agents operating on Dhaga &amp; Co.'s real-time order stream, deflecting 14,880 weekly returns.
+            </p>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <span className="flex h-2.5 w-2.5 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span className="text-xs font-semibold text-emerald-400">Agents Online &amp; Connected</span>
+          <div className="flex items-center space-x-2 font-mono text-xs text-emerald-400 shrink-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>4 Agents Active &amp; Connected</span>
           </div>
         </div>
 
-        {/* 4 Agent Navigation Tabs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* The 4 Agent Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <button
             onClick={() => { setActiveAgent('cx'); setExecutionResult(null); }}
-            className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+            className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
               activeAgent === 'cx'
-                ? 'bg-indigo-950/40 border-indigo-500/50 shadow-md shadow-indigo-950/30'
-                : 'bg-slate-850/60 border-slate-700/60 hover:bg-slate-800'
+                ? 'bg-slate-950 border-indigo-500 ring-1 ring-indigo-500/50'
+                : 'bg-slate-950/40 border-slate-800 hover:bg-slate-950/80 hover:border-slate-700'
             }`}
           >
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-bold text-xs text-indigo-300">Agent 1: Dhaga Saathi</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">58% WISMO</span>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className={`font-bold text-xs ${activeAgent === 'cx' ? 'text-indigo-300' : 'text-slate-300'}`}>Agent 1: Dhaga Saathi</span>
+              <span className="text-[11px] font-mono text-indigo-400">58% WISMO</span>
             </div>
-            <p className="text-[11px] text-slate-300 font-medium">Hinglish CX &amp; Size Exchange Deflection</p>
-            <span className="text-[10px] text-slate-400 block mt-1">Replaces 9-hour Freshdesk delay</span>
+            <p className="text-xs text-slate-200 font-medium">Hinglish CX &amp; Doorstep Size Exchange</p>
+            <span className="text-[11px] text-slate-400 block mt-1">Replaces 9-hour Freshdesk delay</span>
           </button>
 
           <button
             onClick={() => { setActiveAgent('logistics'); setExecutionResult(null); }}
-            className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+            className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
               activeAgent === 'logistics'
-                ? 'bg-indigo-950/40 border-indigo-500/50 shadow-md shadow-indigo-950/30'
-                : 'bg-slate-850/60 border-slate-700/60 hover:bg-slate-800'
+                ? 'bg-slate-950 border-amber-500 ring-1 ring-amber-500/50'
+                : 'bg-slate-950/40 border-slate-800 hover:bg-slate-950/80 hover:border-slate-700'
             }`}
           >
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-bold text-xs text-indigo-300">Agent 2: Reverse Logistics</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">Carrier SLA</span>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className={`font-bold text-xs ${activeAgent === 'logistics' ? 'text-amber-300' : 'text-slate-300'}`}>Agent 2: Reverse Logistics</span>
+              <span className="text-[11px] font-mono text-amber-400">Carrier SLA</span>
             </div>
-            <p className="text-[11px] text-slate-300 font-medium">Multi-Carrier Reverse Pickup &amp; FC Routing</p>
-            <span className="text-[10px] text-slate-400 block mt-1">Delhivery / Ekart allocation</span>
+            <p className="text-xs text-slate-200 font-medium">Multi-Carrier Reverse Pickup &amp; Routing</p>
+            <span className="text-[11px] text-slate-400 block mt-1">Delhivery / Ekart SLA dispatch</span>
           </button>
 
           <button
             onClick={() => { setActiveAgent('intelligence'); setExecutionResult(null); }}
-            className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+            className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
               activeAgent === 'intelligence'
-                ? 'bg-indigo-950/40 border-indigo-500/50 shadow-md shadow-indigo-950/30'
-                : 'bg-slate-850/60 border-slate-700/60 hover:bg-slate-800'
+                ? 'bg-slate-950 border-purple-500 ring-1 ring-purple-500/50'
+                : 'bg-slate-950/40 border-slate-800 hover:bg-slate-950/80 hover:border-slate-700'
             }`}
           >
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-bold text-xs text-indigo-300">Agent 3: Reason Intelligence</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">44% Other</span>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className={`font-bold text-xs ${activeAgent === 'intelligence' ? 'text-purple-300' : 'text-slate-300'}`}>Agent 3: Reason Intelligence</span>
+              <span className="text-[11px] font-mono text-purple-400">44% Other</span>
             </div>
-            <p className="text-[11px] text-slate-300 font-medium">Hinglish "Other" &amp; 410k Reviews Extractor</p>
-            <span className="text-[10px] text-slate-400 block mt-1">Maps defects to vendor contracts</span>
+            <p className="text-xs text-slate-200 font-medium">Hinglish "Other" &amp; Reviews Parser</p>
+            <span className="text-[11px] text-slate-400 block mt-1">Maps defects to vendor contracts</span>
           </button>
 
           <button
             onClick={() => { setActiveAgent('cod'); setExecutionResult(null); }}
-            className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+            className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
               activeAgent === 'cod'
-                ? 'bg-indigo-950/40 border-indigo-500/50 shadow-md shadow-indigo-950/30'
-                : 'bg-slate-850/60 border-slate-700/60 hover:bg-slate-800'
+                ? 'bg-slate-950 border-rose-500 ring-1 ring-rose-500/50'
+                : 'bg-slate-950/40 border-slate-800 hover:bg-slate-950/80 hover:border-slate-700'
             }`}
           >
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-bold text-xs text-indigo-300">Agent 4: COD Interceptor</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono">26% RTO</span>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className={`font-bold text-xs ${activeAgent === 'cod' ? 'text-rose-300' : 'text-slate-300'}`}>Agent 4: COD Interceptor</span>
+              <span className="text-[11px] font-mono text-rose-400">26% RTO</span>
             </div>
-            <p className="text-[11px] text-slate-300 font-medium">Pre-Dispatch COD Risk &amp; Prepaid Flip</p>
-            <span className="text-[10px] text-slate-400 block mt-1">Saves Faizan's ₹120 per parcel</span>
+            <p className="text-xs text-slate-200 font-medium">Pre-Dispatch COD Risk &amp; Prepaid Flip</p>
+            <span className="text-[11px] text-slate-400 block mt-1">Saves Faizan's ₹120 reverse freight</span>
           </button>
         </div>
-      </div>
+      </section>
 
       {/* Interactive Simulator Stage */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Context & Input Controls (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
           {/* Order Selection Pill */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">
-              Select Active Postgres Order Context:
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3">
+            <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block">
+              Active Order Context from Database:
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               {SAMPLE_ORDERS_DATA.slice(0, 3).map((ord) => (
                 <button
                   key={ord.orderId}
                   onClick={() => setSelectedOrderId(ord.orderId)}
-                  className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                     selectedOrderId === ord.orderId
-                      ? 'bg-rose-500/15 border-rose-500/50 text-white'
-                      : 'bg-slate-800/40 border-slate-700/50 text-slate-400 hover:text-slate-200'
+                      ? 'bg-slate-950 border-rose-500/60 text-white shadow-sm'
+                      : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
                   }`}
                 >
                   <div className="flex justify-between items-center text-xs font-mono font-bold">
                     <span>{ord.orderId}</span>
-                    <span className="text-[10px] px-1 rounded bg-slate-700 text-slate-300">{ord.tier}</span>
+                    <span className="text-[10px] text-slate-400">{ord.tier}</span>
                   </div>
-                  <p className="text-[11px] truncate mt-0.5 text-slate-300">{ord.customerName} ({ord.city})</p>
-                  <p className="text-[10px] text-slate-400 truncate mt-0.5">{ord.items[0]?.name}</p>
+                  <p className="text-xs truncate mt-1 text-slate-300">{ord.customerName} ({ord.city})</p>
+                  <p className="text-[11px] text-slate-400 truncate mt-0.5">{ord.items[0]?.name}</p>
                 </button>
               ))}
             </div>
 
-            {/* Selected Order Summary Bar */}
-            <div className="mt-3 p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/40 text-xs flex flex-wrap items-center justify-between gap-2">
+            {/* Selected Order Summary Strip */}
+            <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 text-xs flex flex-wrap items-center justify-between gap-3 font-mono">
               <div>
                 <span className="text-slate-400">Carrier: </span>
                 <span className="font-semibold text-slate-200">{selectedOrder.carrier} ({selectedOrder.trackingNumber})</span>
@@ -417,11 +371,11 @@ export const AgentCommandCenter: React.FC = () => {
           </div>
 
           {/* Hinglish Presets & Input Box */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>Test Real Hinglish / Vernacular Customer Prompts:</span>
+                <span>Real Hinglish Customer Inputs:</span>
               </label>
 
               {/* Fails Visibly Toggle */}
@@ -432,10 +386,10 @@ export const AgentCommandCenter: React.FC = () => {
                     setCustomQuery('Maine pichle saal kisi aur store se dress li thi, uska refund aap doge kya?');
                   }
                 }}
-                className={`text-[11px] px-2.5 py-1 rounded-md border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                className={`text-[11px] px-3 py-1 rounded-lg border flex items-center gap-1.5 transition-colors cursor-pointer font-mono ${
                   showFailureMode 
-                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 font-bold' 
-                    : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
+                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 font-semibold' 
+                    : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-200'
                 }`}
               >
                 <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
@@ -444,7 +398,7 @@ export const AgentCommandCenter: React.FC = () => {
             </div>
 
             {/* Presets List */}
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {HINGLISH_PRESETS.map((p, idx) => (
                 <button
                   key={idx}
@@ -453,7 +407,7 @@ export const AgentCommandCenter: React.FC = () => {
                     setShowFailureMode(p.type === 'FAILURE_MODE');
                     handleRunAgent(p.text, p.type === 'FAILURE_MODE');
                   }}
-                  className="px-2.5 py-1 rounded text-[11px] font-medium bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700/60 hover:border-slate-600 transition-all cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-950/70 hover:bg-slate-950 text-slate-300 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer"
                 >
                   {p.label}
                 </button>
@@ -466,25 +420,25 @@ export const AgentCommandCenter: React.FC = () => {
                 rows={3}
                 value={activeAgent === 'intelligence' ? intelligenceText : customQuery}
                 onChange={(e) => activeAgent === 'intelligence' ? setIntelligenceText(e.target.value) : setCustomQuery(e.target.value)}
-                className="w-full rounded-lg bg-slate-950 border border-slate-700/80 p-3 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                className="w-full rounded-xl bg-slate-950 border border-slate-800 p-3.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors leading-relaxed"
                 placeholder="Type customer message in Hinglish or English..."
               />
             </div>
 
-            <div className="flex items-center justify-between pt-1">
-              <div className="text-[11px] text-slate-400">
-                Pattern: <span className="text-indigo-400 font-mono">Routing → Prompt Chaining → Evaluator-Optimizer</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+              <div className="text-[11px] text-slate-400 font-mono">
+                Pipeline: <span className="text-indigo-400">Intent Routing → Chaining → Guardrails</span>
               </div>
 
               <button
                 disabled={isLoading}
                 onClick={() => handleRunAgent()}
-                className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold text-xs flex items-center space-x-2 shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
+                className="h-10 px-5 rounded-xl bg-gradient-to-r from-rose-600 via-rose-500 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 disabled:opacity-50 text-white font-semibold text-xs flex items-center justify-center space-x-2 shadow-md shadow-indigo-600/20 transition-all cursor-pointer whitespace-nowrap active:scale-[0.98]"
               >
                 {isLoading ? (
                   <>
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    <span>Processing Agent Pipeline...</span>
+                    <span>Executing Agent Pipeline...</span>
                   </>
                 ) : (
                   <>
@@ -499,46 +453,50 @@ export const AgentCommandCenter: React.FC = () => {
 
         {/* Right Column: Execution Output & Trace Inspection (5 cols) */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg min-h-[460px] flex flex-col justify-between">
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-lg min-h-[480px] flex flex-col justify-between backdrop-blur-sm">
             <div>
-              <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 mb-4 gap-2">
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
                 <div className="flex items-center space-x-2">
                   <Terminal className="w-4 h-4 text-emerald-400" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">Live Agent Trace &amp; Output</span>
+                  <span className="text-xs font-bold text-white uppercase tracking-wider font-mono">Agent Output &amp; Telemetry</span>
                 </div>
-                <div className="flex items-center space-x-1.5">
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">
-                    gemini-3.8-flash (T=0.1)
-                  </span>
-                </div>
+                {executionResult && (
+                  <button
+                    onClick={handleCopyTrace}
+                    className="text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1 font-mono cursor-pointer"
+                  >
+                    {copiedTrace ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedTrace ? 'Copied' : 'Copy JSON'}</span>
+                  </button>
+                )}
               </div>
 
               {/* Result Area */}
               {isLoading ? (
-                <div className="flex flex-col items-center justify-center py-20 text-slate-400 space-y-3">
-                  <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-xs font-mono">Invoking Gemini 3.8 Flash structured pipeline...</span>
+                <div className="flex flex-col items-center justify-center py-24 text-slate-400 space-y-3">
+                  <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-xs font-mono text-slate-400">Processing structured agent pipeline...</span>
                 </div>
               ) : executionResult ? (
-                <div className="space-y-3.5 text-xs animate-fadeIn">
+                <div className="space-y-4 text-xs animate-fadeIn">
                   {/* Status Banner */}
                   {executionResult.failureModeTriggered ? (
-                    <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-600/60 text-rose-200">
+                    <div className="p-3.5 rounded-xl bg-slate-950 border border-rose-500/40 text-rose-200">
                       <div className="flex items-center space-x-2 font-bold text-rose-300 mb-1">
                         <AlertCircle className="w-4 h-4 text-rose-400" />
                         <span>Visible Failure Guardrail Triggered (Confidence &lt; 0.65)</span>
                       </div>
-                      <p className="text-[11px] text-slate-300">{executionResult.reasonForFailure}</p>
+                      <p className="text-[11px] text-slate-300 leading-snug">{executionResult.reasonForFailure}</p>
                     </div>
                   ) : (
-                    <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-600/40 text-emerald-200">
+                    <div className="p-3.5 rounded-xl bg-slate-950 border border-emerald-500/40 text-emerald-200">
                       <div className="flex items-center justify-between font-bold text-emerald-300 mb-1">
                         <span className="flex items-center gap-1.5">
                           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                           <span>Intent: {executionResult.detectedIntent || executionResult.canonicalCategory || 'ACTION_PROCESSED'}</span>
                         </span>
-                        <span className="font-mono text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded">
-                          Confidence: {executionResult.confidenceScore ? `${(executionResult.confidenceScore * 100).toFixed(0)}%` : '96%'}
+                        <span className="font-mono text-[11px] text-emerald-400">
+                          {executionResult.confidenceScore ? `${(executionResult.confidenceScore * 100).toFixed(0)}%` : '96%'} confidence
                         </span>
                       </div>
                       <p className="text-[11px] text-slate-300 leading-snug">{executionResult.replyEnglish || executionResult.rootCauseSummary}</p>
@@ -547,36 +505,40 @@ export const AgentCommandCenter: React.FC = () => {
 
                   {/* Customer WhatsApp Screen View */}
                   {executionResult.replyHinglish && (
-                    <div className="rounded-xl bg-slate-950 border border-slate-800 p-3.5 space-y-2 relative overflow-hidden">
-                      <div className="flex items-center justify-between border-b border-slate-800/80 pb-2 text-[10px] text-slate-400">
+                    <div className="rounded-xl bg-[#0b141b] border border-slate-800 p-4 space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5 text-xs">
                         <div className="flex items-center space-x-2">
-                          <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]">
+                          <div className="w-6 h-6 rounded-full bg-[#00a884] text-white flex items-center justify-center font-bold text-xs">
                             D
                           </div>
                           <div>
-                            <span className="font-bold text-slate-200">Dhaga Saathi (Official)</span>
-                            <span className="text-[9px] text-emerald-400 block leading-none">WhatsApp Verified Business</span>
+                            <span className="font-bold text-slate-100 text-xs">Dhaga Saathi</span>
+                            <span className="text-[10px] text-[#00a884] block leading-none font-medium">Official WhatsApp Business</span>
                           </div>
                         </div>
-                        <span className="font-mono">Just now</span>
+                        <span className="font-mono text-[10px] text-slate-400">Verified</span>
                       </div>
 
-                      <div className="bg-emerald-950/20 border border-emerald-800/30 rounded-lg p-3 text-slate-100 text-xs leading-relaxed">
-                        <p>"{executionResult.replyHinglish}"</p>
+                      <div className="bg-[#1f2c34] rounded-lg p-3 text-slate-100 text-xs leading-relaxed relative">
+                        <p>{executionResult.replyHinglish}</p>
+                        <div className="flex items-center justify-end space-x-1 text-[10px] text-slate-400 mt-1.5">
+                          <span>Just now</span>
+                          <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb]" />
+                        </div>
                       </div>
 
                       {/* Instant Action CTA inside WhatsApp */}
                       {executionResult.exchangeOfferDetails && (
-                        <div className="p-2.5 rounded-lg bg-indigo-950/40 border border-indigo-500/40 flex items-center justify-between">
+                        <div className="p-3 rounded-lg bg-slate-900 border border-indigo-500/40 flex items-center justify-between">
                           <div>
-                            <span className="text-[10px] font-bold text-indigo-300 uppercase block">
-                              Doorstep Free Exchange Available
+                            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">
+                              Doorstep Free Exchange
                             </span>
                             <span className="text-xs font-semibold text-white">
                               Size {executionResult.exchangeOfferDetails.suggestedSize} + {executionResult.exchangeOfferDetails.instantIncentive}
                             </span>
                           </div>
-                          <span className="px-2.5 py-1 rounded bg-indigo-600 text-white font-bold text-[10px] shadow">
+                          <span className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold text-xs shadow-sm">
                             1-Click Confirm
                           </span>
                         </div>
@@ -586,14 +548,14 @@ export const AgentCommandCenter: React.FC = () => {
 
                   {/* Vendor CAPA Intelligence if parsed */}
                   {executionResult.specificMeasurementDiscrepancy && (
-                    <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                      <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">
+                    <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1 text-xs">
+                      <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider block">
                         Vendor Discrepancy Attribution:
                       </span>
-                      <p className="text-[11px] text-slate-200">
+                      <p className="text-slate-200">
                         {executionResult.specificMeasurementDiscrepancy}
                       </p>
-                      <p className="text-[10px] text-slate-400 italic">
+                      <p className="text-[11px] text-slate-400 italic">
                         Action: {executionResult.suggestedCorrectiveAction}
                       </p>
                     </div>
@@ -601,35 +563,35 @@ export const AgentCommandCenter: React.FC = () => {
 
                   {/* Pre-Dispatch COD Interception details */}
                   {executionResult.interceptionPlaybook && (
-                    <div className="p-3 rounded-xl bg-rose-950/30 border border-rose-800/40 space-y-1.5">
+                    <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs font-mono">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-rose-300 uppercase tracking-wider">
-                          COD RTO Risk Score: {(executionResult.rtoRiskScore * 100).toFixed(0)}% ({executionResult.riskClassification})
+                        <span className="text-rose-400 font-bold">
+                          COD Risk: {(executionResult.rtoRiskScore * 100).toFixed(0)}% ({executionResult.riskClassification})
                         </span>
-                        <span className="text-[10px] text-emerald-400 font-bold">
+                        <span className="text-emerald-400 font-bold">
                           Saves ₹{executionResult.interceptionPlaybook.projectedCostSavedIfCancelledBeforeDispatch}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-200">
+                      <p className="text-slate-200">
                         Playbook: <strong className="text-white">{executionResult.interceptionPlaybook.primaryAction}</strong>
                       </p>
-                      <p className="text-[10px] text-slate-400">
+                      <p className="text-[11px] text-slate-400">
                         Incentive: {executionResult.interceptionPlaybook.incentive}
                       </p>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-center text-slate-500 space-y-2">
+                <div className="flex flex-col items-center justify-center py-24 text-center text-slate-500 space-y-2">
                   <Bot className="w-10 h-10 text-slate-600 stroke-[1.5]" />
-                  <p className="text-xs text-slate-400 font-medium">Select a Hinglish preset or enter customer text and execute the agent.</p>
-                  <p className="text-[11px] text-slate-600">Real-time structured JSON, telemetry, and action tracing will display here.</p>
+                  <p className="text-xs text-slate-400 font-medium">Select a Hinglish preset or enter customer text and execute.</p>
+                  <p className="text-[11px] text-slate-400">Structured JSON, telemetry, and automated deflection output will appear here.</p>
                 </div>
               )}
             </div>
 
-            {/* Bottom Ground-Rule Telemetry Line */}
-            <div className="pt-3 border-t border-slate-800 text-[10px] font-mono text-slate-400 flex items-center justify-between">
+            {/* Bottom Ground-Rule Telemetry Strip */}
+            <div className="pt-3 border-t border-slate-800 text-[11px] font-mono text-slate-400 flex items-center justify-between">
               <div>
                 <span>Latency: </span>
                 <span className="text-slate-200 font-semibold">{isLoading ? '...' : '380ms'}</span>
@@ -639,67 +601,68 @@ export const AgentCommandCenter: React.FC = () => {
                 <span className="text-slate-200 font-semibold">460</span>
               </div>
               <div>
-                <span>Cost / Run: </span>
+                <span>Cost: </span>
                 <span className="text-emerald-400 font-semibold">₹0.04 (Paise)</span>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Real-time Agent Activity Audit Stream */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-        <div className="flex items-center justify-between mb-3">
+      <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
           <div className="flex items-center space-x-2">
             <Zap className="w-4 h-4 text-amber-400" />
-            <h3 className="font-bold text-white text-xs uppercase tracking-wider">Live Agent Operational Audit Feed</h3>
+            <h3 className="font-bold text-white text-xs uppercase tracking-wider font-mono">Live Operational Audit Stream</h3>
           </div>
-          <span className="text-[10px] text-slate-400">
-            Streaming events across 48,000 orders/week pipeline
+          <span className="text-[11px] font-mono text-slate-400">
+            Streaming across 48,000 weekly shipments
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-400 font-semibold text-[11px]">
-                <th className="pb-2">Time</th>
-                <th className="pb-2">Agent</th>
-                <th className="pb-2">Order / Query</th>
-                <th className="pb-2">Intent</th>
-                <th className="pb-2">Action Executed</th>
-                <th className="pb-2">Status</th>
-                <th className="pb-2">Cost</th>
+              <tr className="border-b border-slate-800/80 text-slate-400 font-mono text-[11px]">
+                <th className="pb-3">TIMESTAMP</th>
+                <th className="pb-3">AGENT</th>
+                <th className="pb-3">QUERY / ORDER</th>
+                <th className="pb-3">INTENT</th>
+                <th className="pb-3">ACTION EXECUTED</th>
+                <th className="pb-3">STATUS</th>
+                <th className="pb-3 text-right">COST</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
               {logs.map((log) => (
-                <tr key={log.id} className="hover:bg-slate-850/50 transition-colors">
-                  <td className="py-2.5 text-slate-400">{log.timestamp}</td>
-                  <td className="py-2.5 text-indigo-300 font-sans font-medium">{log.agentName}</td>
-                  <td className="py-2.5 text-slate-300 font-sans max-w-[200px] truncate" title={log.inputQuery}>
+                <tr key={log.id} className="hover:bg-slate-950/40 transition-colors">
+                  <td className="py-3 text-slate-400">{log.timestamp}</td>
+                  <td className="py-3 text-indigo-300 font-sans font-medium">{log.agentName}</td>
+                  <td className="py-3 text-slate-300 font-sans max-w-[200px] truncate" title={log.inputQuery}>
                     {log.inputQuery}
                   </td>
-                  <td className="py-2.5 text-amber-300">{log.intentDetected}</td>
-                  <td className="py-2.5 text-slate-300 font-sans max-w-[260px] truncate" title={log.actionTaken}>
+                  <td className="py-3 text-amber-300">{log.intentDetected}</td>
+                  <td className="py-3 text-slate-300 font-sans max-w-[260px] truncate" title={log.actionTaken}>
                     {log.actionTaken}
                   </td>
-                  <td className="py-2.5">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-sans font-semibold ${
-                      log.status === 'FAILED_CONFIDENCE_LOW'
-                        ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    }`}>
-                      {log.status === 'FAILED_CONFIDENCE_LOW' ? 'VISIBLE_FALLBACK' : log.status}
+                  <td className="py-3">
+                    <span className="inline-flex items-center gap-1.5 font-sans">
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        log.status === 'FAILED_CONFIDENCE_LOW' ? 'bg-rose-500' : 'bg-emerald-400'
+                      }`} />
+                      <span className={log.status === 'FAILED_CONFIDENCE_LOW' ? 'text-rose-300' : 'text-emerald-400 font-medium'}>
+                        {log.status === 'FAILED_CONFIDENCE_LOW' ? 'ESCALATED' : log.status}
+                      </span>
                     </span>
                   </td>
-                  <td className="py-2.5 text-slate-400">₹{log.costInPaise}</td>
+                  <td className="py-3 text-slate-400 text-right">₹{log.costInPaise}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

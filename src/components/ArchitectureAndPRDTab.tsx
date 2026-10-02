@@ -48,43 +48,43 @@ export const ArchitectureAndPRDTab: React.FC = () => {
 
           {/* Sub Navigation & Export */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex flex-wrap gap-1.5 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 text-xs">
+            <div className="flex flex-wrap gap-1 bg-slate-950/80 p-1.5 rounded-xl border border-slate-800 text-xs font-mono">
               <button
                 onClick={() => setActiveSubTab('prd')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
-                  activeSubTab === 'prd' ? 'bg-cyan-500 text-slate-950 font-bold shadow' : 'text-slate-300 hover:text-white'
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  activeSubTab === 'prd' ? 'bg-slate-800 text-cyan-300 font-semibold shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 1. PRD Document
               </button>
               <button
                 onClick={() => setActiveSubTab('architecture')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
-                  activeSubTab === 'architecture' ? 'bg-cyan-500 text-slate-950 font-bold shadow' : 'text-slate-300 hover:text-white'
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  activeSubTab === 'architecture' ? 'bg-slate-800 text-cyan-300 font-semibold shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 2. System Architecture
               </button>
               <button
                 onClick={() => setActiveSubTab('api')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
-                  activeSubTab === 'api' ? 'bg-cyan-500 text-slate-950 font-bold shadow' : 'text-slate-300 hover:text-white'
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  activeSubTab === 'api' ? 'bg-slate-800 text-cyan-300 font-semibold shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 3. API &amp; Schema Specs
               </button>
               <button
                 onClick={() => setActiveSubTab('roadmap')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
-                  activeSubTab === 'roadmap' ? 'bg-cyan-500 text-slate-950 font-bold shadow' : 'text-slate-300 hover:text-white'
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  activeSubTab === 'roadmap' ? 'bg-slate-800 text-cyan-300 font-semibold shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 4. Phased Roadmap
               </button>
               <button
                 onClick={() => setActiveSubTab('dev_handoff')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
-                  activeSubTab === 'dev_handoff' ? 'bg-cyan-500 text-slate-950 font-bold shadow' : 'text-slate-300 hover:text-white'
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  activeSubTab === 'dev_handoff' ? 'bg-slate-800 text-cyan-300 font-semibold shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 5. Dev CTO Handoff
@@ -93,11 +93,11 @@ export const ArchitectureAndPRDTab: React.FC = () => {
 
             <button
               onClick={() => window.print()}
-              className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-colors flex items-center space-x-1.5 cursor-pointer"
+              className="h-9 px-3.5 text-xs font-semibold rounded-xl bg-slate-950 hover:bg-slate-850 border border-slate-800 text-slate-300 transition-colors flex items-center space-x-1.5 cursor-pointer font-mono"
               title="Print or Save as PDF"
             >
               <FileText className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Print / PDF</span>
+              <span>Export PDF</span>
             </button>
           </div>
         </div>
@@ -138,8 +138,8 @@ export const ArchitectureAndPRDTab: React.FC = () => {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
               <div className="p-4 rounded-xl bg-slate-850 border border-slate-700/60">
-                <span className="text-cyan-400 font-bold block mb-1">OKR 1: Slash Return Rate</span>
-                <p className="text-slate-300 font-medium">Reduce company-wide return rate from 31.0% to 24.5% (-6.5% pts) within 90 days of rollout, saving 3,120 reverse parcels weekly.</p>
+                <span className="text-cyan-400 font-bold block mb-1">OKR 1: Slash Return Rate to &lt; 2-3%</span>
+                <p className="text-slate-300 font-medium">Aggressive Target: Drive overall return rate down to less than 2-3% (&lt; 2.5% Moonshot), saving 13,680 parcels/wk and recovering ₹12.08 Cr annually (Phase 1 90-day milestone: 24.5%).</p>
               </div>
               <div className="p-4 rounded-xl bg-slate-850 border border-slate-700/60">
                 <span className="text-cyan-400 font-bold block mb-1">OKR 2: Deflect Support Overhead</span>
